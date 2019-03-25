@@ -207,7 +207,6 @@ def regg_forest_fit(self):
     self.regr_rf.fit(X_full, y_full)
 
 
-    # print (X_full, y_full)
 
 def predict_Forest(self,state_to_predict):
 
@@ -232,12 +231,10 @@ def predict_Forest(self,state_to_predict):
     state_str = str(''.join(map(str, state_to_predict)))
     if state_str in self.StatesIndex:
         act_pred = self.StatesIndex[state_str]
-        print("Exist")
         self.logger.debug(f'We have the state...')
         return act_pred
     else:
         act_pred = self.regr_rf.predict(state_to_predict.reshape(1, -1))
-        print("Predicting")
         return act_pred
 
 def valid_action(self, x, y, arena, bombs, bomb_xys, others, dead_zone):
@@ -303,7 +300,6 @@ def scape_map(self, x, y, arena, bomb_xys, others, bomb_map):
                 (not d in bomb_xys)):
 
             free_curr = get_free_cells(self,x,y, xd, yd, arena, bomb_map, others, bomb_xys)
-            #print("In dir:", d, " esta libre y tengo ", free_curr," libres")
             if free_curr > free_max:
                 free_curr = free_max
             scape[idx_direction] = free_curr
@@ -337,21 +333,7 @@ def get_free_cells(self, x, y, xa, ya, arena, bomb_map, others,bomb_xys):
         curr_x, curr_y = queue.popleft()
         curr = (curr_x, curr_y)
         directions = [(curr_x, curr_y - 1), (curr_x, curr_y + 1), (curr_x - 1, curr_y), (curr_x + 1, curr_y)]
-        #print(visited)
 
-        # "For" version Antonio
-        # for (xd, yd) in directions:
-        #     d = (xd, yd)
-        #     if ((arena[d] == 0) and
-        #             (self.game_state['explosions'][d] <= 1) and
-        #             (bomb_map[d] > 0) and
-        #             (not d in others) and
-        #             (not d in bomb_xys) and
-        #             (not d in visited)):
-        #         queue.append(d)
-        #         visited[d] = visited[curr] + 1
-        #         if (bomb_map[d]==5 and visited[d]<=5):
-        #             free += 1
 
         for (xd, yd) in directions:
             d = (xd, yd)
@@ -435,7 +417,6 @@ def mappping(self):
 
     dead_zone = np.ones(arena.shape) * 5
     for xb, yb, t in bombs:
-        print("time: ",t)
         tp = 4-t
         if tp != 0 :
             if tp == 1:
@@ -516,16 +497,6 @@ def mappping(self):
         state[25] = number_crates
     else:
         state[25] = 9
-
-    print("\n STATE VALID: ", state[:4])
-    print("STATE BOMB: ", state[4])
-    print("STATE COINS: ", state[5:9])
-    print("STATE SCAPE: ", state[9:13])
-    print("STATE SCAPE 1: ", state[13:17])
-    print("STATE SCAPE 2: ", state[17:21])
-    print("STATE SCAPE 3: ", state[21:25])
-    print("STATE CRATES: ", state[25], "\n")
-    #print("STATE DROP BOMB: ", state[14], "\n")
 
     return state
 
@@ -610,7 +581,6 @@ def replay_quick(self):
 
     state_flat = np.asarray(state).reshape(-1)
     state_str = str(''.join(map(str, state_flat)))
-    #print(state_str)
 
     target = reward
     #print(self.StatesIndex)
@@ -628,7 +598,6 @@ def replay_quick(self):
             Q_temp[0, action] = target
             self.StatesIndex[state_str] = Q_temp
 
-            #print("Q_temp",Q_temp)
 
 def update_epsilon(self):
     if self.epsilon > self.epsilon_min:
@@ -662,13 +631,10 @@ def load_policy(self):
         if len_dic < self.replay_minimum_size:
             self.replay_minimum_size = len_dic
         regg_forest_fit(self)
-        print("Begining with #states: ", len_dic)
-        # print(self.StatesIndex)
     else:
         print("Hey, is lack of initial Q guess")
 
 def save_policy(self):
-    print(self.persistence_update_frequency, " episodes")
     with open(self.model_path_save, 'wb') as handle:
         pickle.dump(self.StatesIndex, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -846,9 +812,9 @@ def setup(self):
 
    # Regg Forest
     # Were to save Qs
-    self.model_path_save = './agent_code/Neu_agent_T3_act/Poly-Update.pickle'
+    self.model_path_save = './agent_code/ac_agent/Poly-Update.pickle'
     # Were to load Qs
-    self.model_path_load = './agent_code/Neu_agent_T3_act/Poly.pickle'
+    self.model_path_load = './agent_code/ac_agent/Poly.pickle'
     # Flag to start the regg forest
     self.flag_forest = 0
     # Load Dictionary
@@ -870,12 +836,10 @@ def act(self):
     in settings.py, execution is interrupted by the game and the current value
     of self.next_action will be used. The default value is 'WAIT'.
     """
-    print(self.game_state['explosions'])
 
     # Gather information about the game state
 
     self.state = mappping(self)
-    #print(self.state)
     # Increase the counter of total time steps
     self.total_steps += 1
 
@@ -923,7 +887,6 @@ def act(self):
     # q_values = self.model.predict( self.state.reshape((1, self.state_size)) )
     self.idx_action = np.argmax(q_values)
     self.next_action = self.actions[self.idx_action]
-    print("Action:", self.next_action)
     # Increase the number of actions that has been taken based on the model
     self.actions_taken_model += 1
     # Flag, if the action belongs to the model
